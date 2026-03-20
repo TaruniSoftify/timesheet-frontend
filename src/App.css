@@ -1,0 +1,819 @@
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
+/* login */
+
+.login-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+  font-family: 'Inter', "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.login-card {
+  background: #ffffff;
+  padding: 40px 50px;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: slideUp 0.5s ease-out;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.login-logo-container {
+  margin-bottom: 25px;
+}
+
+.login-logo {
+  width: 160px;
+  height: auto;
+  object-fit: contain;
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.login-header h1 {
+  font-size: 24px;
+  color: #1a202c;
+  margin: 0 0 8px 0;
+  font-weight: 700;
+}
+
+.login-header p {
+  font-size: 14px;
+  color: #718096;
+  margin: 0;
+}
+
+.login-form-group {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.input-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #a0aec0;
+  font-size: 16px;
+}
+
+.login-input {
+  width: 100%;
+  padding: 12px 12px 12px 40px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 15px;
+  color: #2d3748;
+  outline: none;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.login-input:focus {
+  border-color: #3182ce;
+  box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
+}
+
+.login-submit-btn {
+  background-color: #3182ce;
+  color: white;
+  padding: 14px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  margin-top: 5px;
+  width: 100%;
+}
+
+.login-submit-btn:hover {
+  background-color: #2b6cb0;
+}
+
+.login-submit-btn:active {
+  transform: scale(0.98);
+}
+
+
+/* NavBar */
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #007bff;
+  color: white;
+  padding: 0 20px;
+  height: 60px;
+  width: 100vw;          /* ✅ full viewport width */
+  margin: 0;
+  position: fixed;       /* ✅ stays at top */
+  top: 0;
+  left: 0;
+  box-sizing: border-box;
+  z-index: 1000;         /* keeps it above other content */
+}
+
+.navbar-title {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.navbar-logo {
+  height: 30px;
+  margin-top: 0px;
+}
+
+.notification-icon {
+  cursor: pointer;
+  font-size: 20px;
+}
+
+/* Profile & Notifications Dropdown */
+.profile-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 8px;
+  background: white;
+  border: 1px solid #edf2f7;
+  border-radius: 12px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  width: 200px;
+  padding: 16px;
+  z-index: 50;
+}
+
+.dropdown-content {
+  display: none;
+  margin-top: 10px; /* pull down slightly */
+  background: white;
+  color: black;
+  min-width: 150px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  padding: 10px;
+  border-radius: 4px;
+}
+
+.topbar-right:hover .dropdown-content {
+  display: block;
+}
+
+
+
+/* Search Results */
+
+
+.timecards-wrapper {
+  background-color: #f4f7f6;
+  min-height: calc(100vh - 60px); 
+  padding: 12px 30px 30px 30px;
+  margin-top: 60px; /* Offset for fixed navbar */
+}
+
+.timecards-container {
+  background: white;
+  padding: 24px 32px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  margin: 0 auto;
+  max-width: 1400px;
+}
+
+.timecards-container h2 {
+  color: #2d3748;
+  font-weight: 600;
+  margin-top: 0px;
+  margin-bottom: 10px;
+  font-size: 20px;
+  border-bottom: 1px solid #edf2f7;
+  padding-bottom: 12px;
+}
+
+.actions-bar {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  margin-bottom: 20px;
+  font-weight: 500;
+  color: #4a5568;
+  background: #f8fafc;
+  padding: 12px 16px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+}
+.action-item {
+  cursor: pointer;
+}
+
+.timecards-table, .time-entry-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin-top: 15px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.timecards-table th,
+.timecards-table td,
+.time-entry-table th,
+.time-entry-table td {
+  border-bottom: 1px solid #e2e8f0;
+  border-right: 1px solid #e2e8f0;
+  padding: 12px 16px;
+  text-align: center;
+  color: #4a5568;
+  font-size: 14px;
+}
+
+.timecards-table th:last-child,
+.timecards-table td:last-child,
+.time-entry-table th:last-child,
+.time-entry-table td:last-child {
+  border-right: none;
+}
+
+.timecards-table tbody tr:last-child td,
+.time-entry-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.timecards-table th,
+.time-entry-table th {
+  background: #f8fafc;
+  font-weight: 600;
+  color: #2d3748;
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 0.05em;
+}
+
+.timecards-table tbody tr:hover,
+.time-entry-table tbody tr:hover {
+  background-color: #fcfdfe;
+}
+
+.results-section {
+  margin-top: 20px;
+}
+
+select {
+  font-size: 12px;     /* smaller text */
+  padding: 4px 6px;    /* reduce padding inside */
+  height: 28px;        /* control height */
+  /* width: 120px;         */
+}
+
+.time-entry-table select {
+  width: 100%;        /* ✅ fills the entire cell */
+  min-width: 120px;   /* optional safeguard so it doesn’t shrink too small */
+  font-family: inherit;
+  font-size: 14px;
+  color: #4a5568;
+  padding: 4px 6px;
+  height: 28px;
+}
+
+.time-entry-table input[type="number"],
+.time-entry-table input[type="text"] {
+  font-family: inherit;
+  font-size: 14px;   
+  color: #4a5568;
+  padding: 2px 4px;  /* tighter padding */
+  text-align: center; /* center the numbers */
+  height: 20px;
+}
+
+.time-entry-table input[type="number"] {
+  width: 90px;
+}
+.time-entry-table input[type="text"] {
+  width: 120px; /* Base width, inline styles may override */
+}
+
+
+
+
+.time-entry-table th:first-child,
+.time-entry-table td:first-child {
+  width: 90px;       /* adjust as needed */
+  min-width: 90px;   /* ensures it doesn’t shrink */
+  text-align: center;
+}
+
+.time-entry-table tfoot td {
+  background: #f2f2f2;
+  font-weight: 600;
+  text-align: center;
+  padding: 6px;
+}
+
+
+
+.status-col {
+  width: 200px;   /* or whatever width you want */
+}
+
+
+/* Dropdown */
+
+.dropdown {
+  position: relative;
+}
+
+.dropdown-toggle {
+  cursor: pointer;
+  font-weight: 600;
+  color: #2d3748;
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 0.05em;
+  padding: 4px 8px; /* neat spacing */
+}
+
+.dropdown-toggle:hover {
+  color: #0070c0;   /* only the text turns blue */
+}
+
+.dropdown-toggle:hover .dropdown-arrow {
+  color: #444; /* force arrow to stay grey */ 
+}
+
+.dropdown-arrow {
+  font-size: 10px;
+  margin-left: 2px;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  min-width: 160px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  z-index: 10;
+}
+.dropdown-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #4a5568;
+}
+
+.dropdown-item:hover {
+  background: #f2f2f2;
+}
+
+.dropdown-toggle.active {
+  background-color: #0070c0;  /* PwC-style blue */
+  color: white;               /* text turns white */
+  padding: 4px 8px;           /* neat spacing */
+  border-radius: 0;           /* sharp edges */
+}
+
+.dropdown-toggle.active .dropdown-arrow {
+  color: white;               /* arrow also turns white */
+}
+
+
+/* PLUS & EXCEL ICONS */
+
+.icon-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;          /* same height/width as dropdown toggle */
+  height: 24px;
+  color: #666;          /* grey text/icon */
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.plus-icon {
+  font-weight: bold;
+  font-size: 30px;      /* slightly larger plus */
+}
+
+.excel-icon {
+  font-size: 20px;      /* Excel symbol size */
+  height: 30px;
+}
+
+
+/* Calendar */
+
+.calendar-popup {
+  position: fixed;
+  top: 30%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 20px;
+  width: 320px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  z-index: 100;
+  text-align: center;
+}
+
+.calendar-popup h3 {
+  margin-bottom: 15px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #444;
+}
+
+.calendar-popup input[type="date"] {
+  width: 100%;
+  padding: 8px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.popup-buttons {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.popup-buttons button {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  background: #0070c0;   /* PwC blue */
+  color: #fff;
+  font-weight: 500;
+}
+
+.popup-buttons button:hover {
+  background: #0056a3;
+}
+
+/* Hover effect for Time Card Period dates */
+.timecard-period {
+  cursor: pointer;       /* makes it feel clickable */
+  color: #444;           /* default grey */
+}
+
+.timecard-period:hover {
+  color: #0070c0;        /* PwC blue on hover */
+  text-decoration: underline;
+}
+
+
+/*ReportTime*/
+
+/* .reporttime-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: black;   
+  color: white;
+  padding: 10px 20px;
+} */
+.reporttime-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: black;
+  color: white;
+  padding: 10px 20px;
+  width: 100vw;          /* ✅ full viewport width */
+  margin: 0;
+  position: fixed;       /* ✅ stays below navbar */
+  top: 60px;             /* adjust based on navbar height */
+  left: 0;
+  box-sizing: border-box;
+  z-index: 999;
+}
+
+.report-time-container {
+  padding-left: 20px;   
+  
+}
+
+
+.reporttime-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: white;
+}
+
+.reporttime-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.report-time-container {
+  margin-top: 140px;   /* adjust based on actual navbar + header height */
+}
+
+.header-btn {
+  background-color: transparent;   /* ✅ no fill */
+  color: white;                    /* ✅ white text */
+  border: 1px solid white;         /* ✅ sharp white border */
+  padding: 4px 10px;
+  cursor: pointer;
+  border-radius: 0;                /* ✅ sharp edges */
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.header-btn:hover {
+  background-color: white;         /* invert on hover */
+  color: black;
+}
+
+.cancel-btn {
+  border: 1px solid white;         /* same border */
+}
+
+
+.add-row-btn {
+  margin-left: 12px;
+  background-color: #0070c0;   /* PwC blue */
+  color: white;
+  border: none;
+  border-radius: 4px;          /* rectangular with slight rounding */
+  padding: 6px 12px;           /* rectangular spacing */
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.add-row-btn:hover {
+  background-color: #0056a3;
+}
+
+
+/* ReviewTime */
+
+/* Header bar */
+/* .reporttime-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 20px 0;
+  padding: 10px 20px;
+  background-color: #f5f5f5;
+  border-bottom: 2px solid #ddd;
+}
+
+.reporttime-title {
+  font-size: 20px;
+  font-weight: bold;
+  color: #333;
+}
+
+.reporttime-buttons {
+  display: flex;
+  gap: 10px;
+} */
+
+/* .header-btn {
+  padding: 6px 14px;
+  border: none;
+  border-radius: 4px;
+  background-color: #0070c0;
+  color: white;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.header-btn:hover {
+  background-color: #005a9e;
+}
+
+.cancel-btn {
+  background-color: #d9534f;
+}
+
+.cancel-btn:hover {
+  background-color: #c9302c;
+} */
+
+/* Compliance box */
+.compliance-box {
+  background-color: #fff8e1;
+  border: 1px solid #f0c36d;
+  padding: 12px;
+  margin: 15px 0;
+  font-size: 14px;
+  color: #444;
+  border-radius: 4px;
+}
+
+/* Popup box */
+.popup-box {
+  background-color: #fefefe;
+  border: 2px solid #0070c0;
+  padding: 16px;
+  margin: 20px auto;
+  max-width: 600px;
+  text-align: center;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  margin-top: 120px;
+}
+
+.popup-box p {
+  margin-bottom: 12px;
+  font-size: 14px;
+  color: #333;
+}
+
+.popup-box button {
+  padding: 6px 12px;
+  background-color: #0070c0;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.popup-box button:hover {
+  background-color: #005a9e;
+}
+
+/* Table styling */
+.time-entry-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+}
+
+.time-entry-table th,
+.time-entry-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: center;
+}
+
+.time-entry-table th {
+  background-color: #f2f2f2;
+  font-weight: bold;
+}
+
+.time-entry-table input,
+.time-entry-table select {
+  width: 100%;
+  padding: 4px;
+  font-size: 13px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+}
+
+.add-row-btn {
+  margin-left: 10px;
+  padding: 4px 10px;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.add-row-btn:hover {
+  background-color: #218838;
+}
+
+/* Calendar date links */
+.timecard-period a:link,
+.timecard-period a:visited {
+  color: #0070c0;   
+  font-weight: 500;   
+  text-decoration: none;
+}
+
+.timecard-period a:hover,
+.timecard-period a:active {
+  color: #0056a3;       /* darker blue on hover/active */
+}
+
+/* Scoped override for ReviewTime totals row */
+#reviewtime-container .time-entry-table tfoot td:first-child {
+  text-align: left;   /* ✅ aligns label under Country */
+  font-weight: bold;
+}
+
+/* Admin Clean Table Styles */
+.admin-clean-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-family: 'Inter', "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.admin-clean-table th,
+.admin-clean-table td {
+  padding: 16px 24px !important;
+  border: none !important; 
+  border-bottom: 1px solid #f1f5f9 !important;
+  text-align: left !important;
+  background: white;
+}
+
+.admin-clean-table thead tr {
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+
+.admin-clean-table th {
+  color: #64748b !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  background-color: #f8fafc !important;
+  padding: 12px 24px !important;
+}
+
+.admin-clean-table tbody tr:last-child td {
+  border-bottom: none !important;
+}
+
+/* Fix for inputs and selects where global height constraints cause text truncation */
+.admin-clean-table input,
+.admin-clean-table select {
+  height: auto !important;
+  min-height: 40px !important;
+  line-height: normal !important;
+}
+
