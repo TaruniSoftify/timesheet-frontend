@@ -1,19 +1,25 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "./App.css"; // ✅ use App.css
-import Modal from "./Modal";
 
 function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [modalMessage, setModalMessage] = useState("");
+  const [toastType, setToastType] = useState("success");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
+  const showToast = (message, type = 'success') => {
+      setModalMessage(message);
+      setToastType(type);
+      setTimeout(() => setModalMessage(""), 4000);
+  };
+
   useEffect(() => {
     if (location.state && location.state.logoutMessage) {
-       setModalMessage(location.state.logoutMessage);
+       showToast(location.state.logoutMessage, 'success');
        window.history.replaceState({}, document.title);
     }
   }, [location]);
@@ -59,7 +65,7 @@ function Login() {
           localStorage.setItem("department", dept);
           localStorage.setItem("email", email);
 
-          setModalMessage("Logged in successfully!");
+          showToast("Logged in successfully!", "success");
           
           setTimeout(() => {
               // Role-Based Redirect
@@ -74,7 +80,7 @@ function Login() {
       })
       .catch(err => {
           setIsLoading(false);
-          setModalMessage("Error: " + err.message);
+          showToast("Error: " + err.message, "error");
       });
   };
 
@@ -116,7 +122,28 @@ function Login() {
           </button>
         </form>
       </div>
-      <Modal message={modalMessage} onClose={() => setModalMessage("")} />
+
+      {modalMessage && (
+        <div style={{
+          position: 'fixed',
+          top: '20px',
+          right: '20px',
+          background: toastType === 'error' ? '#fee2e2' : '#dcfce7',
+          color: toastType === 'error' ? '#ef4444' : '#16a34a',
+          padding: '12px 24px',
+          borderRadius: '8px',
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+          zIndex: 9999,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          fontWeight: '500',
+          animation: 'slideIn 0.3s ease-out'
+        }}>
+          <i className={`fa-solid ${toastType === 'error' ? 'fa-circle-exclamation' : 'fa-circle-check'}`}></i>
+          {modalMessage}
+        </div>
+      )}
     </div>
   );
 }

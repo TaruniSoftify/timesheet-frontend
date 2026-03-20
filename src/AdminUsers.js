@@ -95,15 +95,33 @@ function AdminUsers() {
           manager_name: newUser.manager || null
         }
       };
-      await api.post("users/", payload);
-      await fetchUsers();
+
+      // Optimistic UI Update (Immediate response)
+      const tempId = Date.now();
+      const optimisticUser = {
+        id: tempId,
+        username: newUser.username,
+        email: newUser.email,
+        profile: {
+          role: newUser.role,
+          department: newUser.department,
+          manager_name: newUser.manager || null
+        }
+      };
+      
+      setUsers(prev => [optimisticUser, ...prev]);
       setIsAdding(false);
       setNewUser({ username: '', email: '', password: '', role: 'Employee', department: '', manager: '' });
       showToast("User added successfully");
+
+      // Background Network Request
+      await api.post("users/", payload);
+      fetchUsers(); // Refresh to get true DB id
     } catch (err) {
       console.error("Failed to add user", err);
+      // Revert Optimistic Update
+      fetchUsers(); 
       if (err.response?.data) {
-        // Handle Django specific validation errors if present
         const msg = typeof err.response.data === 'string' ? err.response.data : JSON.stringify(err.response.data);
          showToast(`Failed to add user: ${msg}`, "error");
       } else {
@@ -162,12 +180,27 @@ function AdminUsers() {
             manager_name: editUserData.manager || null
           }
         };
-        await api.put(`users/${editUserId}/`, payload);
-        await fetchUsers();
+
+        // Optimistic UI Update
+        const optimisticUpdatedUser = {
+           id: editUserId,
+           username: editUserData.username,
+           email: editUserData.email,
+           profile: {
+             role: editUserData.role,
+             department: editUserData.department,
+             manager_name: editUserData.manager || null
+           }
+        };
+        setUsers(prev => prev.map(u => u.id === editUserId ? optimisticUpdatedUser : u));
         setEditUserId(null);
         showToast("User updated successfully");
+
+        // Background Sync
+        await api.put(`users/${editUserId}/`, payload);
       } catch (err) {
         console.error("Failed to update user", err);
+        fetchUsers(); // Revert
         showToast("Failed to update user. Please try again.", "error");
       }
   };

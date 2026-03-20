@@ -57,7 +57,7 @@ function ManagerDashboard() {
             <div className="summary-card">
               <div className="card-icon blue"><i className="fa-solid fa-user-group"></i></div>
               <div className="card-info">
-                <h3>{uniqueMembers}</h3>
+                <h3>{loading ? "-" : uniqueMembers}</h3>
                 <p>Team Members Active</p>
               </div>
             </div>
@@ -65,7 +65,7 @@ function ManagerDashboard() {
             <div className="summary-card">
               <div className="card-icon yellow"><i className="fa-regular fa-clock"></i></div>
               <div className="card-info">
-                <h3>{pendingCount}</h3>
+                <h3>{loading ? "-" : pendingCount}</h3>
                 <p>Pending Review</p>
               </div>
             </div>
@@ -73,7 +73,7 @@ function ManagerDashboard() {
             <div className="summary-card">
               <div className="card-icon green"><i className="fa-regular fa-circle-check"></i></div>
               <div className="card-info">
-                <h3>{approvedCount}</h3>
+                <h3>{loading ? "-" : approvedCount}</h3>
                 <p>Approved</p>
               </div>
             </div>
@@ -81,7 +81,7 @@ function ManagerDashboard() {
             <div className="summary-card">
               <div className="card-icon red"><i className="fa-regular fa-circle-xmark"></i></div>
               <div className="card-info">
-                <h3>{rejectedCount}</h3>
+                <h3>{loading ? "-" : rejectedCount}</h3>
                 <p>Rejected</p>
               </div>
             </div>
