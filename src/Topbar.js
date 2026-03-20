@@ -95,7 +95,7 @@ const Topbar = ({ toggleSidebar, title }) => {
             </div>
             <button className="dropdown-signout" onClick={() => {
               localStorage.clear();
-              navigate("/");
+              navigate("/", { state: { logoutMessage: "Logged out successfully!" } });
             }}>
               <i className="fa-solid fa-arrow-right-from-bracket"></i> Sign Out
             </button>

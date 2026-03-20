@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import api from "./api";
 
 function AdminOverview({ setActiveTab }) {
+  const [isLoading, setIsLoading] = useState(true);
   const [stats, setStats] = useState({
     totalUsers: 0,
     activeProjects: 0,
@@ -35,16 +36,28 @@ function AdminOverview({ setActiveTab }) {
 
         setStats({
           totalUsers: usersRes.data.users ? usersRes.data.users.length : 0,
-          activeProjects: projectsRes.data.length || 0,
-          activeClients: clientsRes.data.length || 0,
+          activeProjects: projectsRes.data.filter ? projectsRes.data.filter(p => p.isActive !== false && p.is_active !== false).length : 0,
+          activeClients: clientsRes.data.filter ? clientsRes.data.filter(c => c.isActive !== false && c.is_active !== false).length : 0,
           totalHours: sumHours
         });
       } catch (err) {
         console.error("Failed to fetch admin stats", err);
+      } finally {
+        setIsLoading(false);
       }
     };
     fetchStats();
   }, []);
+
+  if (isLoading) {
+    return (
+      <div className="admin-overview" style={{ textAlign: 'center', padding: '100px 20px' }}>
+         <i className="fa-solid fa-spinner fa-spin" style={{ fontSize: '40px', color: '#3b82f6', marginBottom: '20px' }}></i>
+         <h3>Loading Admin Dashboard Data...</h3>
+         <p style={{color: '#64748b'}}>Pulling fresh records securely...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="admin-overview">

@@ -21,7 +21,7 @@ function Navbar({ username }) {
 
   const handleLogout = () => {
     localStorage.clear();
-    navigate("/");
+    navigate("/", { state: { logoutMessage: "Logged out successfully!" } });
   };
 
   const [notifications, setNotifications] = useState([]);

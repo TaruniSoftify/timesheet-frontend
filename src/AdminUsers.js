@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import api from "./api";
+import ConfirmModal from "./ConfirmModal";
 
 const ActiveToggle = () => (
   <svg width="32" height="18" viewBox="0 0 32 18" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -38,6 +39,7 @@ function AdminUsers() {
 
   // Notifications
   const [toast, setToast] = useState({ show: false, message: '', type: '' });
+  const [confirmDelete, setConfirmDelete] = useState({ isOpen: false, id: null, name: "" });
 
   const showToast = (message, type = 'success') => {
     setToast({ show: true, message, type });
@@ -111,7 +113,12 @@ function AdminUsers() {
   };
 
   const handleDeleteUser = async (id, username) => {
-    if(!window.confirm(`Are you sure you want to deactivate ${username}?`)) return;
+    setConfirmDelete({ isOpen: true, id, name: username });
+  };
+
+  const confirmDeletion = async () => {
+    const { id } = confirmDelete;
+    setConfirmDelete({ isOpen: false, id: null, name: "" });
     try {
         await api.delete(`users/${id}/`);
         setUsers(users.filter(u => u.id !== id));
@@ -501,6 +508,13 @@ function AdminUsers() {
           </tbody>
         </table>
       </div>
+      <ConfirmModal 
+        isOpen={confirmDelete.isOpen}
+        title="Confirm Deactivation"
+        message={`Are you sure you want to completely deactivate ${confirmDelete.name}? This action cannot be undone.`}
+        onConfirm={confirmDeletion}
+        onCancel={() => setConfirmDelete({ isOpen: false, id: null, name: "" })}
+      />
     </div>
   );
 }

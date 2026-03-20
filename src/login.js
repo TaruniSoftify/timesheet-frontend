@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import "./App.css"; // ✅ use App.css
 import Modal from "./Modal";
 
@@ -7,9 +7,19 @@ function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [modalMessage, setModalMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.state && location.state.logoutMessage) {
+       setModalMessage(location.state.logoutMessage);
+       window.history.replaceState({}, document.title);
+    }
+  }, [location]);
 
   const handleLogin = () => {
+    setIsLoading(true);
     const apiUrl = process.env.REACT_APP_API_URL || "http://127.0.0.1:8000/api/";
     fetch(`${apiUrl}token/`, {
       method: "POST",
@@ -43,27 +53,36 @@ function Login() {
           // Parse the Role and Department
           const role = userData.profile ? userData.profile.role : "Employee";
           const dept = userData.profile ? userData.profile.department : "";
+          const email = userData.email || `${username}@softify.com`;
           
           localStorage.setItem("role", role);
           localStorage.setItem("department", dept);
+          localStorage.setItem("email", email);
 
-          // Role-Based Redirect
-          if (role === "Manager") {
-              navigate("/manager-dashboard");
-          } else if (role === "Admin") {
-              navigate("/admin-dashboard");
-          } else {
-              navigate("/timecards"); // Default Employee
-          }
+          setModalMessage("Logged in successfully!");
+          
+          setTimeout(() => {
+              // Role-Based Redirect
+              if (role === "Manager") {
+                  navigate("/manager-dashboard");
+              } else if (role === "Admin") {
+                  navigate("/admin-dashboard");
+              } else {
+                  navigate("/timecards"); // Default Employee
+              }
+          }, 1000);
       })
-      .catch(err => setModalMessage("Error: " + err.message));
+      .catch(err => {
+          setIsLoading(false);
+          setModalMessage("Error: " + err.message);
+      });
   };
 
   return (
     <div className="login-wrapper">
       <div className="login-card">
         <div className="login-logo-container">
-          <img src="/softifylogo.png" alt="Softify Logo" className="login-logo" />
+          <img src="/SoftifyLogo.png" alt="Softify Logo" className="login-logo" />
         </div>
         <div className="login-header">
           <h1>Welcome Back</h1>
@@ -92,7 +111,9 @@ function Login() {
               required
             />
           </div>
-          <button type="submit" className="login-submit-btn">Sign In</button>
+          <button type="submit" className="login-submit-btn" disabled={isLoading}>
+            {isLoading ? "Signing in..." : "Sign In"}
+          </button>
         </form>
       </div>
       <Modal message={modalMessage} onClose={() => setModalMessage("")} />

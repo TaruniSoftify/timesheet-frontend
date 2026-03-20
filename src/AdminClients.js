@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import api from "./api";
+import ConfirmModal from "./ConfirmModal";
 
 const StatusToggle = ({ isActive, onClick }) => {
   const color = isActive ? "#10b981" : "#94a3b8";
@@ -57,6 +58,7 @@ function AdminClients() {
 
   // Notifications
   const [toast, setToast] = useState({ show: false, message: '', type: '' });
+  const [confirmDelete, setConfirmDelete] = useState({ isOpen: false, id: null, name: "" });
 
   const showToast = (message, type = 'success') => {
     setToast({ show: true, message, type });
@@ -93,7 +95,12 @@ function AdminClients() {
   };
 
   const handleDeleteClient = async (id) => {
-    if(!window.confirm("Are you sure you want to delete this client?")) return;
+    setConfirmDelete({ isOpen: true, id, name: "this client" });
+  };
+
+  const confirmDeletion = async () => {
+    const { id } = confirmDelete;
+    setConfirmDelete({ isOpen: false, id: null, name: "" });
     try {
       await api.delete(`clients/${id}/`);
       setClients(clients.filter(c => c.id !== id));
@@ -288,6 +295,13 @@ function AdminClients() {
           </tbody>
         </table>
       </div>
+      <ConfirmModal 
+        isOpen={confirmDelete.isOpen}
+        title="Confirm Deletion"
+        message={`Are you sure you want to completely delete ${confirmDelete.name}? This action cannot be undone.`}
+        onConfirm={confirmDeletion}
+        onCancel={() => setConfirmDelete({ isOpen: false, id: null, name: "" })}
+      />
     </div>
   );
 }
