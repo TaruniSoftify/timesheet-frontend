@@ -28,22 +28,13 @@ function ReviewTime() {
     return headers;
   };
 
-  const [isDataLoading, setIsDataLoading] = useState(true);
-
   useEffect(() => {
     // If rows were not passed through state (e.g. came from "View Summary" in timecards.js), fetch them
     if (rows.length === 0 && period) {
-      setIsDataLoading(true);
       const token = localStorage.getItem("access_token");
-
-      Promise.all([
-          api.get("/timeentries/").catch(() => ({ data: [] })),
-          api.get("/projects/").catch(() => ({ data: [] }))
-      ])
-      .then(([entriesRes, projectsRes]) => {
-            const data = entriesRes.data;
-            const fetchedProjects = Array.isArray(projectsRes.data) ? projectsRes.data : [];
-
+      api.get("/timeentries/")
+         .then(res => {
+            const data = res.data;
             if (!Array.isArray(data)) return;
 
             const [startStr] = period.split(" - ");
@@ -79,16 +70,15 @@ function ReviewTime() {
                                   .replace(/Independence: [^,]*,? ?/g, '').trim();
                if(userNote.endsWith(",")) userNote = userNote.slice(0, -1).trim();
 
-               // Map ID to actual Project Name
-               const proj = fetchedProjects.find(p => p.id === entry.project);
-               const projName = proj ? proj.name : entry.project;
-               const rowKey = `${projName}-${taskVal}-${userNote}-${country}-${client}`;
+               // Use project ID directly as fallback if name resolution isn't available
+               const projId = entry.project || "";
+               const rowKey = `${projId}-${taskVal}-${userNote}-${country}-${client}`;
 
                if (!groupedRows[rowKey]) {
                    groupedRows[rowKey] = {
                        id: Object.keys(groupedRows).length + 1,
                        country: country,
-                       project: projName,
+                       project: projId, // Ideally name, but we only have ID here right now
                        client: client,
                        independence: indep,
                        task: taskVal,
@@ -108,10 +98,7 @@ function ReviewTime() {
                 setRows(restoredRows);
             }
          })
-         .catch(err => console.error("Error fetching review entries:", err))
-         .finally(() => setIsDataLoading(false));
-    } else {
-        setIsDataLoading(false);
+         .catch(err => console.error("Error fetching review entries:", err));
     }
   }, [period, rows.length]);
 
@@ -208,11 +195,7 @@ function ReviewTime() {
                 </tr>
             </thead>
             <tbody>
-                {isDataLoading ? (
-                   <tr><td colSpan="15" style={{ textAlign: "center", padding: "40px" }}>Loading Submitted Timecard Data...</td></tr>
-                ) : rows.length === 0 ? (
-                   <tr><td colSpan="15" style={{ textAlign: "center", padding: "40px" }}>No data found for this timecard.</td></tr>
-                ) : rows.map((row, idx) => (
+                {rows.map((row, idx) => (
                 <tr key={idx}>
                     <td>{row.country}</td>
                     <td>{row.project}</td>

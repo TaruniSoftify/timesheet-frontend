@@ -33,118 +33,139 @@ function ReportTime() {
   const [projects, setProjects] = useState([]);
   const [clients, setClients] = useState([]);
 
-  // Default row state
-  const [rows, setRows] = useState([
-    { id: 1, country: "", project: "", client: "", independence: "", task: "", note: "", hours: Array(7).fill("") }
-  ]);
 
-  const [isDataLoading, setIsDataLoading] = useState(true);
+useEffect(() => {
+  // 👈 Token is handled automatically by api.js interceptor
 
-  // Consolidated Data Fetching Closure
-  useEffect(() => {
-    const fetchAllData = async () => {
+  api.get("countries/")
+    .then(res => setCountries(Array.isArray(res.data) ? res.data : []))
+    .catch(() => setCountries([]));
+
+  api.get("projects/")
+    .then(res => setProjects(Array.isArray(res.data) ? res.data : []))
+    .catch(() => setProjects([]));
+
+  api.get("clients/")
+    .then(res => setClients(Array.isArray(res.data) ? res.data : []))
+    .catch(() => setClients([]));
+}, []);
+
+
+
+  const CACHE_KEY = `timecard_draft_${period}`;
+  
+  const [rows, setRows] = useState(() => {
+    const saved = sessionStorage.getItem(CACHE_KEY);
+    if (saved) {
       try {
-        setIsDataLoading(true);
-        // Execute all master data fetches in parallel using the authenticated api instance
-        const [countriesRes, projectsRes, clientsRes] = await Promise.all([
-            api.get("countries/").catch(() => ({ data: [] })),
-            api.get("projects/").catch(() => ({ data: [] })),
-            api.get("clients/").catch(() => ({ data: [] }))
-        ]);
-
-        const fetchedCountries = Array.isArray(countriesRes.data) ? countriesRes.data : [];
-        const fetchedProjects = Array.isArray(projectsRes.data) ? projectsRes.data : [];
-        const fetchedClients = Array.isArray(clientsRes.data) ? clientsRes.data : [];
-
-        setCountries(fetchedCountries);
-        setProjects(fetchedProjects);
-        setClients(fetchedClients);
-
-        // Fetch User's existing TimeEntries for this week
-        try {
-            const timeRes = await api.get("timeentries/");
-            const data = timeRes.data;
-
-            if (Array.isArray(data)) {
-                const [startStr] = period.split(" - ");
-                const start = new Date(startStr);
-                const dateStrings = [];
-                for (let i = 0; i < 7; i++) {
-                    const d = new Date(start);
-                    d.setDate(start.getDate() + i);
-                    let m = '' + (d.getMonth() + 1); let day = '' + d.getDate();
-                    if (m.length < 2) m = '0' + m; if (day.length < 2) day = '0' + day;
-                    dateStrings.push([d.getFullYear(), m, day].join('-'));
-                }
-
-                const thisWeekEntries = data.filter(entry => dateStrings.includes(entry.date));
-
-                if (thisWeekEntries.length > 0) {
-                    const groupedRows = {};
-                    thisWeekEntries.forEach(entry => {
-                        const proj = fetchedProjects.find(p => p.id === entry.project);
-                        const projName = proj ? proj.name : "";
-
-                        let country = "", client = "", indep = "";
-                        if (entry.notes) {
-                            const parts = entry.notes.split(", ");
-                            parts.forEach(p => {
-                                if (p.startsWith("Country: ")) country = p.replace("Country: ", "");
-                                if (p.startsWith("Client: ")) client = p.replace("Client: ", "");
-                                if (p.startsWith("Independence: ")) indep = p.replace("Independence: ", "");
-                            });
-                        }
-                        
-                        const taskVal = entry.task || "";
-                        let userNote = entry.notes || "";
-                        userNote = userNote.replace(/Country: [^,]*,? ?/g, '')
-                                           .replace(/Client: [^,]*,? ?/g, '')
-                                           .replace(/Independence: [^,]*,? ?/g, '').trim();
-                        if(userNote.endsWith(",")) userNote = userNote.slice(0, -1).trim();
-
-                        const rowKey = `${projName}-${taskVal}-${userNote}-${country}-${client}`;
-
-                        if (!groupedRows[rowKey]) {
-                            groupedRows[rowKey] = {
-                                id: Object.keys(groupedRows).length + 1,
-                                dbIds: [], 
-                                country: country,
-                                project: projName,
-                                client: client,
-                                independence: indep,
-                                task: taskVal,
-                                note: userNote,
-                                hours: Array(7).fill("")
-                            };
-                        }
-
-                        const dayIdx = dateStrings.indexOf(entry.date);
-                        if (dayIdx !== -1) {
-                            groupedRows[rowKey].hours[dayIdx] = entry.hours;
-                            groupedRows[rowKey].dbIds.push(entry.id);
-                        }
-                    });
-
-                    const restoredRows = Object.values(groupedRows);
-                    if (restoredRows.length > 0) {
-                        setRows(restoredRows);
-                    }
-                }
-            }
-        } catch (err) {
-            console.error("Failed to load timeentries:", err);
-        }
-      } catch (err) {
-          console.error("Fatal Error fetching dependencies:", err);
-      } finally {
-          setIsDataLoading(false);
-      }
-    };
-
-    if (weekDates.length === 7) {
-        fetchAllData();
+        return JSON.parse(saved);
+      } catch (e) {}
     }
-  }, [period]);
+    return [{ id: 1, country: "", project: "", client: "", independence: "", task: "", note: "", hours: Array(7).fill("") }];
+  });
+
+  // Automatically save drafts instantly as the user types, so navigating Back and Next is 0-latency
+  useEffect(() => {
+      sessionStorage.setItem(CACHE_KEY, JSON.stringify(rows));
+  }, [rows, CACHE_KEY]);
+
+  // Load existing TimeEntries from
+  useEffect(() => {
+    if (weekDates.length !== 7 || projects.length === 0) return;
+
+    const token = localStorage.getItem("access_token");
+
+    const apiUrl = process.env.REACT_APP_API_URL || "http://127.0.0.1:8000/api/";
+    fetch(`${apiUrl}timeentries/`, {
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+      }
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (!Array.isArray(data)) return;
+
+        // Convert the 7 weekDates string array into comparable YYYY-MM-DD strings format
+        const [startStr] = period.split(" - ");
+        const start = new Date(startStr);
+        const dateStrings = [];
+        for (let i = 0; i < 7; i++) {
+            const d = new Date(start);
+            d.setDate(start.getDate() + i);
+            let m = '' + (d.getMonth() + 1); let day = '' + d.getDate();
+            if (m.length < 2) m = '0' + m; if (day.length < 2) day = '0' + day;
+            dateStrings.push([d.getFullYear(), m, day].join('-'));
+        }
+
+        // Filter the fetched backend data to only include entries that fall inside this specific week
+        const thisWeekEntries = data.filter(entry => dateStrings.includes(entry.date));
+
+        if (thisWeekEntries.length === 0) return; // leave the default blank row
+
+        // Group the entries by project to recreate the rows
+        const groupedRows = {};
+        
+        thisWeekEntries.forEach(entry => {
+           const proj = projects.find(p => p.id === entry.project);
+           const projName = proj ? proj.name : "";
+
+           // Try to extract country/client from notes if you stored it there (basic parsing)
+           let country = "", client = "", indep = "";
+           if (entry.notes) {
+              const parts = entry.notes.split(", ");
+              parts.forEach(p => {
+                 if (p.startsWith("Country: ")) country = p.replace("Country: ", "");
+                 if (p.startsWith("Client: ")) client = p.replace("Client: ", "");
+                 if (p.startsWith("Independence: ")) indep = p.replace("Independence: ", "");
+              });
+           }
+           
+           // We'll also store the real Task and Note values since we've now added them as formal fields
+           const taskVal = entry.task || "";
+           // Using the entry.notes directly, but stripping out our front-end hacky metadata tags to get the pure user note
+           let userNote = entry.notes || "";
+           userNote = userNote.replace(/Country: [^,]*,? ?/g, '')
+                              .replace(/Client: [^,]*,? ?/g, '')
+                              .replace(/Independence: [^,]*,? ?/g, '').trim();
+           // Strip trailing comma if it got left behind
+           if(userNote.endsWith(",")) userNote = userNote.slice(0, -1).trim();
+
+           // Group by Project + Task + Note so identical tasks group together across days
+           const rowKey = `${projName}-${taskVal}-${userNote}-${country}-${client}`;
+           
+           if (!groupedRows[rowKey]) {
+               groupedRows[rowKey] = {
+                   id: Object.keys(groupedRows).length + 1,
+                   dbIds: [], // Track real Django database IDs for instant deletion
+                   country: country,
+                   project: projName,
+                   client: client,
+                   independence: indep,
+                   task: taskVal,
+                   note: userNote,
+                   hours: Array(7).fill("")
+               };
+           }
+
+           // Find which day of the week this entry belongs to (0 to 6)
+           const dayIdx = dateStrings.indexOf(entry.date);
+           if (dayIdx !== -1) {
+               groupedRows[rowKey].hours[dayIdx] = entry.hours;
+               // Store the specific database ID associated with this hour block
+               groupedRows[rowKey].dbIds.push(entry.id);
+           }
+        });
+
+        // Update the state with the loaded data!
+        const restoredRows = Object.values(groupedRows);
+        if (restoredRows.length > 0) {
+            setRows(restoredRows);
+        }
+
+      })
+      .catch(err => console.error("Error fetching existing time entries:", err));
+  }, [period, projects]);
 
   // Update dropdowns
   const updateRow = (idx, field, value) => {
@@ -299,6 +320,7 @@ const saveTimeEntries = (closeAfterSave = false) => {
               date: formattedDate,
               hours: hour,
               task: row.task || "General Task", // Required by TimeEntry model
+              employee: 1, // TEMPORARY FIX
               notes: noteParts.join(", ")
             };
 
@@ -428,9 +450,7 @@ const navigate = useNavigate();
             </tr>
           </thead>
           <tbody>
-            {isDataLoading ? (
-               <tr><td colSpan="15" style={{ textAlign: "center", padding: "40px" }}>Securely Loading Saved Timecard Data...</td></tr>
-            ) : rows.map((row, idx) => (
+            {rows.map((row, idx) => (
               <tr key={row.id}>
                 <td>{idx + 1}</td>
 
