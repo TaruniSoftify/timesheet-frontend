@@ -295,7 +295,6 @@ const saveTimeEntries = (closeAfterSave = false) => {
               date: formattedDate,
               hours: hour,
               task: row.task || "General Task", // Required by TimeEntry model
-              employee: 1, // TEMPORARY FIX
               notes: noteParts.join(", ")
             };
 
