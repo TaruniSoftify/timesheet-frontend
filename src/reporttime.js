@@ -33,6 +33,10 @@ function ReportTime() {
   const [projects, setProjects] = useState([]);
   const [clients, setClients] = useState([]);
 
+  // Default row state
+  const [rows, setRows] = useState([
+    { id: 1, country: "", project: "", client: "", independence: "", task: "", note: "", hours: Array(7).fill("") }
+  ]);
 
   const [isDataLoading, setIsDataLoading] = useState(true);
 
