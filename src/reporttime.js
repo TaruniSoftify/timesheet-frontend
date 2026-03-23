@@ -29,26 +29,41 @@ function ReportTime() {
   const [modalMessage, setModalMessage] = useState("");
   const [showModal, setShowModal] = useState(false);
 
-  const [countries, setCountries] = useState([]);
-  const [projects, setProjects] = useState([]);
-  const [clients, setClients] = useState([]);
+  // Use Stale-While-Revalidate (SWR) Caching via LocalStorage to survive 50-second Render Cold Starts!
+  const [countries, setCountries] = useState(() => {
+      try { return JSON.parse(localStorage.getItem('cached_countries')) || []; } catch(e) { return []; }
+  });
+  const [projects, setProjects] = useState(() => {
+      try { return JSON.parse(localStorage.getItem('cached_projects')) || []; } catch(e) { return []; }
+  });
+  const [clients, setClients] = useState(() => {
+      try { return JSON.parse(localStorage.getItem('cached_clients')) || []; } catch(e) { return []; }
+  });
 
+  useEffect(() => {
+    // 👈 Token is handled automatically by api.js interceptor
 
-useEffect(() => {
-  // 👈 Token is handled automatically by api.js interceptor
+    api.get("countries/")
+      .then(res => {
+          const data = Array.isArray(res.data) ? res.data : [];
+          setCountries(data);
+          localStorage.setItem('cached_countries', JSON.stringify(data));
+      }).catch(err => console.warn("Background fetch countries failed, relying on cache."));
 
-  api.get("countries/")
-    .then(res => setCountries(Array.isArray(res.data) ? res.data : []))
-    .catch(() => setCountries([]));
+    api.get("projects/")
+      .then(res => {
+          const data = Array.isArray(res.data) ? res.data : [];
+          setProjects(data);
+          localStorage.setItem('cached_projects', JSON.stringify(data));
+      }).catch(err => console.warn("Background fetch projects failed, relying on cache."));
 
-  api.get("projects/")
-    .then(res => setProjects(Array.isArray(res.data) ? res.data : []))
-    .catch(() => setProjects([]));
-
-  api.get("clients/")
-    .then(res => setClients(Array.isArray(res.data) ? res.data : []))
-    .catch(() => setClients([]));
-}, []);
+    api.get("clients/")
+      .then(res => {
+          const data = Array.isArray(res.data) ? res.data : [];
+          setClients(data);
+          localStorage.setItem('cached_clients', JSON.stringify(data));
+      }).catch(err => console.warn("Background fetch clients failed, relying on cache."));
+  }, []);
 
 
 
