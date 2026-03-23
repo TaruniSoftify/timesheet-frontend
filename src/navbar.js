@@ -63,7 +63,7 @@ function Navbar({ username }) {
     <div className="navbar">
       {/* <h3 className="navbar-title">Timesheet Portal</h3> */}
       <img
-        src="/softifylogo.png"
+        src="/SoftifyLogo.png"
         alt="Softify Logo"
         className="navbar-logo"
         style={{ 
