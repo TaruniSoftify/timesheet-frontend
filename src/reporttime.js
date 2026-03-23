@@ -266,107 +266,67 @@ const saveTimeEntries = (closeAfterSave = false) => {
       dateStrings.push([d.getFullYear(), m, day].join('-'));
   }
 
-  // 1. FIRST: Fetch all entries so we can delete the old ones for this week
-  api.get("/timeentries/")
-  .then(res => {
-      const data = res.data;
-      // Find all IDs of entries that already exist for this week
-      const oldEntryIds = data
-          .filter(entry => dateStrings.includes(entry.date))
-          .map(entry => entry.id);
+  const newEntriesPayload = [];
 
-      // Create Delete Promises for those old entries using Axios
-      const deletePromises = oldEntryIds.map(id => api.delete(`/timeentries/${id}/`));
+  for (let idx = 0; idx < rows.length; idx++) {
+      const row = rows[idx];
+      const projectObj = projects.find(p => p.name === row.project);
+      let projectId = projectObj ? projectObj.id : null;
 
-      // Wait for deletions to finish, then save the new rows
-      return Promise.all(deletePromises);
-  })
-  .then(() => {
-      // 2. SECOND: Create and Post the new entries
-      const promises = [];
-
-      rows.forEach((row, idx) => {
-        // Find the project ID because Django expects an integer primary key
-        const projectObj = projects.find(p => p.name === row.project);
-        
-        let projectId = null;
-        if (projectObj) {
-            projectId = projectObj.id;
-        }
-
-        row.hours.forEach((hour, dayIdx) => {
-          // Only post if the user actually typed hours into this day
+      for (let dayIdx = 0; dayIdx < 7; dayIdx++) {
+          const hour = row.hours[dayIdx];
           if (hour && parseFloat(hour) > 0) {
-            
-            // VALIDATION: Prevent saving if project wasn't selected
-            if (projectId === null) {
-               setModalMessage(`You entered hours on row ${idx + 1} but did not select a Project. Please select a project before saving.`);
-               setShowModal(true);
-               throw new Error("Validation Error: Missing Project ID"); 
-            }
+              if (projectId === null) {
+                 setModalMessage(`You entered hours on row ${idx + 1} but did not select a Project. Please select a project before saving.`);
+                 setShowModal(true);
+                 return; 
+              }
 
-            const formattedDate = dateStrings[dayIdx];
+              const noteParts = [
+                  row.country ? `Country: ${row.country}` : null,
+                  row.client ? `Client: ${row.client}` : null,
+                  row.independence ? `Independence: ${row.independence}` : null,
+                  row.note ? row.note : null
+              ].filter(Boolean);
 
-            // Bundle the extra frontend fields plus the user's actual note cleanly
-            const noteParts = [
-              row.country ? `Country: ${row.country}` : null,
-              row.client ? `Client: ${row.client}` : null,
-              row.independence ? `Independence: ${row.independence}` : null,
-              row.note ? row.note : null
-            ].filter(Boolean);
-
-            const payload = {
-              project: projectId,
-              date: formattedDate,
-              hours: hour,
-              task: row.task || "General Task", // Required by TimeEntry model
-              employee: 1, // TEMPORARY FIX
-              notes: noteParts.join(", ")
-            };
-
-            const p = api.post("/timeentries/", payload)
-               .then(res => res.data)
-               .catch(err => {
-                 // Format the error so the `.catch` block at the bottom alerts properly
-                 throw new Error(`Save failed: ${err.message}`); 
-               });
-
-            promises.push(p);
+              newEntriesPayload.push({
+                  project: projectId,
+                  date: dateStrings[dayIdx],
+                  hours: parseFloat(hour),
+                  task: row.task || "General Task",
+                  notes: noteParts.join(", ")
+              });
           }
-        });
-      });
-
-      if (promises.length === 0) {
-          setModalMessage("No hours entered to save!");
-          setShowModal(true);
-          return;
       }
+  }
 
-      // 3. THIRD: Wait for all daily posts to succeed
-      return Promise.all(promises);
+  if (newEntriesPayload.length === 0) {
+      setModalMessage("No hours entered to save!");
+      setShowModal(true);
+      return;
+  }
+
+  // Use the blazingly fast pure bulk_save endpoint
+  api.post("/timeentries/bulk_save/", {
+      dates: dateStrings,
+      entries: newEntriesPayload
   })
-  .then(results => {
-      if (results) {
-         console.log("Saved all entries:", results);
-         // Use the properly-formatted local timezone date string instead of React's UTC default `toISOString`
-         const startIso = dateStrings[0];
-
-         // Find this specific timecard and patch the Grand Total
-         return api.get("/timecards/").then(res => {
-             const timecard = res.data.find(tc => tc.period_start === startIso);
-             if (timecard) {
-                return api.patch(`/timecards/${timecard.id}/`, { 
-                    total_hours: getWeeklyTotal(),
-                    status: "Saved"
-                });
-             }
-         });
+  .then(res => {
+      // Find this specific timecard and patch the Grand Total
+      return api.get("/timecards/");
+  })
+  .then(res => {
+      const timecard = res.data.find(tc => tc.period_start === dateStrings[0]);
+      if (timecard) {
+          return api.patch(`/timecards/${timecard.id}/`, { 
+              total_hours: getWeeklyTotal(),
+              status: "Saved"
+          });
       }
   })
   .then(() => {
-      // After everything is guaranteed successfully patched, show success UI
       if (closeAfterSave) {
-          window.location.href = "/timecards"; // back to list
+          window.location.href = "/timecards";
       } else {
           setModalMessage("Time entries saved successfully!");
           setShowModal(true);
@@ -374,11 +334,8 @@ const saveTimeEntries = (closeAfterSave = false) => {
   })
   .catch(err => {
       console.error("Error saving entries:", err);
-      // Don't show a second alert if we already showed a validation alert in the loop
-      if (!err.message.includes("Validation Error")) {
-          setModalMessage("Error saving: " + err.message);
-          setShowModal(true);
-      }
+      setModalMessage("Error saving: " + err.message);
+      setShowModal(true);
   });
 };
 
