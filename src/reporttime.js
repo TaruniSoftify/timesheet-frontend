@@ -4,7 +4,6 @@ import "./App.css";
 import React, { useState, useEffect } from "react";
 import api from "./api"; // ✅ Imported Axios auto-refresher
 import Modal from "./Modal"; // ✅ Imported custom modal
-import Modal from "./Modal"; // ✅ Imported custom modal
 
 
 // ✅ Helper to generate week dates from the clicked period
