@@ -10,6 +10,7 @@ function TimeCards() {
   const [timecards, setTimecards] = useState([]);
   const [selectedDate, setSelectedDate] = useState("");
   const [modalMessage, setModalMessage] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
 
   const [showActionsMenu, setShowActionsMenu] = useState(false);
   const [showViewMenu, setShowViewMenu] = useState(false);
@@ -277,6 +278,8 @@ function TimeCards() {
       return `${y}-${m}-${day}`;
     };
 
+    setIsCreating(true);
+
     // Save to backend using our auto-refresh interceptor
     api.post("timecards/", {
         period_start: formatLocal(start),
@@ -306,14 +309,17 @@ function TimeCards() {
 
         setTimecards(updated);
         localStorage.setItem("timecards", JSON.stringify(updated));
+        
+        setIsCreating(false);
+        setShowCalendarPopup(false);
+        navigate(`/report/${encodeURIComponent(safePeriod)}`, { state: { status: savedCard.status } });
     })
     .catch(err => {
+        setIsCreating(false);
         if (err.isSilentLogout) return; // Prevent alert from blocking the redirect!
         console.error("Error saving timecard:", err);
         setModalMessage("Failed to create timecard: " + (err.message || "Server Error"));
     });
-
-    setShowCalendarPopup(false);
   };
   const handleExportExcel = () => {
     if (timecards.length === 0) {
@@ -475,8 +481,10 @@ function TimeCards() {
               />
 
               <div className="popup-buttons">
-                <button onClick={createTimecard}>OK</button>
-                <button onClick={() => setShowCalendarPopup(false)}>Cancel</button>
+                <button onClick={createTimecard} disabled={isCreating}>
+                    {isCreating ? "Creating..." : "OK"}
+                </button>
+                <button onClick={() => setShowCalendarPopup(false)} disabled={isCreating}>Cancel</button>
               </div>
 
             </div>
@@ -504,7 +512,7 @@ function TimeCards() {
                       case 'period':
                         return (
                           <td key={col.id} className="timecard-period">
-                            <Link to={`/report/${encodeURIComponent(tc.period)}`}>
+                            <Link to={`/report/${encodeURIComponent(tc.period)}`} state={{ status: tc.status || "Draft" }}>
                               {tc.period}
                             </Link>
                           </td>

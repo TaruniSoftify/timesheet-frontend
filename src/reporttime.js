@@ -1,9 +1,9 @@
 import Navbar from "./navbar";
-import { useParams } from "react-router-dom";
+import { useParams, useLocation, useNavigate } from "react-router-dom";
 import "./App.css";
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import api from "./api"; // ✅ Imported Axios auto-refresher
+import Modal from "./Modal"; // ✅ Imported custom modal
 import Modal from "./Modal"; // ✅ Imported custom modal
 
 
@@ -24,7 +24,12 @@ function getWeekDates(period) {
 }
 
 function ReportTime() {
-  const { period } = useParams(); // ✅ gets the clicked period from URL
+  const { period } = useParams();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // If we navigated here from Timecards.js, it tells us if this Timecard is definitively a Draft!
+  const knownStatus = location.state && location.state.status ? location.state.status : null;
   const weekDates = getWeekDates(period);
   const [modalMessage, setModalMessage] = useState("");
   const [showModal, setShowModal] = useState(false);
@@ -87,6 +92,12 @@ function ReportTime() {
     if (weekDates.length !== 7 || projects.length === 0) {
         // Only set fetching to false if we permanently can't fetch. Otherwise we keep spinning.
         return;
+    }
+
+    // IF we definitively know from the Timecards page that this Timecard is an unsaved Draft, there are no saved DB rows. We instantly load the empty interface!
+    if (knownStatus === "Draft") {
+        setIsFetching(false);
+        return; // Bypass network completely! Instantly load the draft!
     }
 
     const token = localStorage.getItem("access_token");
@@ -361,11 +372,6 @@ const saveTimeEntries = (closeAfterSave = false) => {
       setShowModal(true);
   });
 };
-
-
-const navigate = useNavigate();
-
-
 
   return (
     <div>
