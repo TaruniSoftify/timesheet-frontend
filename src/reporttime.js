@@ -67,22 +67,9 @@ function ReportTime() {
 
 
 
-  const CACHE_KEY = `timecard_draft_${period}`;
-  
-  const [rows, setRows] = useState(() => {
-    const saved = sessionStorage.getItem(CACHE_KEY);
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {}
-    }
-    return [{ id: 1, country: "", project: "", client: "", independence: "", task: "", note: "", hours: Array(7).fill("") }];
-  });
-
-  // Automatically save drafts instantly as the user types, so navigating Back and Next is 0-latency
-  useEffect(() => {
-      sessionStorage.setItem(CACHE_KEY, JSON.stringify(rows));
-  }, [rows, CACHE_KEY]);
+  const [rows, setRows] = useState([
+    { id: 1, country: "", project: "", client: "", independence: "", task: "", note: "", hours: Array(7).fill("") }
+  ]);
 
   // Load existing TimeEntries from
   useEffect(() => {
