@@ -623,51 +623,45 @@ function TimeCards() {
               <button onClick={closeSummaryModal} style={{background: 'none', border: 'none', fontSize: '24px', lineHeight: 1, cursor: 'pointer', color: '#a0aec0'}}>&times;</button>
             </div>
 
-            {summaryRows.length === 0 ? (
-                <div style={{padding: '40px', textAlign: 'center', color: '#718096'}}>
-                  <p>Loading or no time entries found for this period.</p>
-                </div>
-            ) : (
-                <div style={{overflowX: 'auto'}}>
-                  <table className="time-entry-table" style={{width: '100%'}}>
-                    <thead>
-                        <tr>
-                        <th>Country</th>
-                        <th>Project</th>
-                        <th>Client</th>
-                        <th>Independence<br/>Confirmed</th>
-                        {getSummaryHeaderDates().map((d, idx) => (
-                            <th key={idx}>{d}</th>
+            <div style={{overflowX: 'auto'}}>
+              <table className="time-entry-table" style={{width: '100%'}}>
+                <thead>
+                    <tr>
+                    <th>Country</th>
+                    <th>Project</th>
+                    <th>Client</th>
+                    <th>Independence<br/>Confirmed</th>
+                    {getSummaryHeaderDates().map((d, idx) => (
+                        <th key={idx}>{d}</th>
+                    ))}
+                    </tr>
+                </thead>
+                <tbody>
+                    {summaryRows.map((row, idx) => (
+                    <tr key={idx}>
+                        <td>{row.country}</td>
+                        <td>{row.project}</td>
+                        <td>{row.client}</td>
+                        <td>{row.independence}</td>
+                        {row.hours.map((h, hIdx) => (
+                        <td key={hIdx}>{h || "0.00"}</td>
                         ))}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {summaryRows.map((row, idx) => (
-                        <tr key={idx}>
-                            <td>{row.country}</td>
-                            <td>{row.project}</td>
-                            <td>{row.client}</td>
-                            <td>{row.independence}</td>
-                            {row.hours.map((h, hIdx) => (
-                            <td key={hIdx}>{h || "0.00"}</td>
-                            ))}
-                        </tr>
+                    </tr>
+                    ))}
+                </tbody>
+                <tfoot style={{background: '#f8fafc', fontWeight: 600}}>
+                    <tr>
+                        <td>Daily Totals</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        {summaryDailyTotals.map((total, idx) => (
+                        <td key={idx}>{total.toFixed(2)}</td>
                         ))}
-                    </tbody>
-                    <tfoot style={{background: '#f8fafc', fontWeight: 600}}>
-                        <tr>
-                            <td>Daily Totals</td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            {summaryDailyTotals.map((total, idx) => (
-                            <td key={idx}>{total.toFixed(2)}</td>
-                            ))}
-                        </tr>
-                    </tfoot>
-                  </table>
-                </div>
-            )}
+                    </tr>
+                </tfoot>
+              </table>
+            </div>
             
             <div style={{marginTop: '24px', textAlign: 'right'}}>
                 <button onClick={closeSummaryModal} style={{padding: '8px 24px', background: '#0070c0', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 500}}>Close</button>
