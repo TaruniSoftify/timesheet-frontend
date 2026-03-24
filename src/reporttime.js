@@ -40,6 +40,8 @@ function ReportTime() {
       try { return JSON.parse(localStorage.getItem('cached_clients')) || []; } catch(e) { return []; }
   });
 
+  const [isFetching, setIsFetching] = useState(true);
+
   useEffect(() => {
     // 👈 Token is handled automatically by api.js interceptor
 
@@ -73,7 +75,11 @@ function ReportTime() {
 
   // Load existing TimeEntries from
   useEffect(() => {
-    if (weekDates.length !== 7 || projects.length === 0) return;
+    // We only want to pause fetching if projects literally aren't available yet
+    if (weekDates.length !== 7 || projects.length === 0) {
+        // Only set fetching to false if we permanently can't fetch. Otherwise we keep spinning.
+        return;
+    }
 
     const token = localStorage.getItem("access_token");
 
@@ -160,9 +166,14 @@ function ReportTime() {
         if (restoredRows.length > 0) {
             setRows(restoredRows);
         }
+        
+        setIsFetching(false);
 
       })
-      .catch(err => console.error("Error fetching existing time entries:", err));
+      .catch(err => {
+          console.error("Error fetching existing time entries:", err);
+          setIsFetching(false);
+      });
   }, [period, projects]);
 
   // Update dropdowns
@@ -405,7 +416,14 @@ const navigate = useNavigate();
             </tr>
           </thead>
           <tbody>
-            {rows.map((row, idx) => (
+            {isFetching ? (
+              <tr>
+                 <td colSpan="14" style={{ textAlign: "center", padding: "40px", color: "#666" }}>
+                    <i className="fa-solid fa-circle-notch fa-spin" style={{ marginRight: "10px" }}></i>
+                    Securely Loading Saved Timecard Data...
+                 </td>
+              </tr>
+            ) : rows.map((row, idx) => (
               <tr key={row.id}>
                 <td>{idx + 1}</td>
 
