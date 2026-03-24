@@ -43,9 +43,6 @@ function ReportTime() {
   const [clients, setClients] = useState(() => {
       try { return JSON.parse(localStorage.getItem('cached_clients')) || []; } catch(e) { return []; }
   });
-
-  const [isFetching, setIsFetching] = useState(true);
-
   useEffect(() => {
     // 👈 Token is handled automatically by api.js interceptor
 
@@ -95,7 +92,6 @@ function ReportTime() {
 
     // IF we definitively know from the Timecards page that this Timecard is an unsaved Draft, there are no saved DB rows. We instantly load the empty interface!
     if (knownStatus === "Draft") {
-        setIsFetching(false);
         return; // Bypass network completely! Instantly load the draft!
     }
 
@@ -189,12 +185,9 @@ function ReportTime() {
             setRows([{ id: 1, country: "", project: "", client: "", independence: "", task: "", note: "", hours: Array(7).fill("") }]);
         }
         
-        setIsFetching(false);
-
       })
       .catch(err => {
           console.error("Error fetching existing time entries:", err);
-          setIsFetching(false);
       });
   }, [period, projects]);
 
@@ -415,14 +408,7 @@ const saveTimeEntries = (closeAfterSave = false) => {
 
         {/* ✅ Time Entry Section */}
         <h3 className="time-entry-heading">
-            <div style={{display: 'flex', alignItems: 'center', gap: '15px'}}>
-               <span>Time Entry</span>
-               {isFetching && (
-                   <span style={{ fontSize: '14px', color: '#666', fontWeight: 'normal' }}>
-                      <i className="fa-solid fa-circle-notch fa-spin"></i> Syncing...
-                   </span>
-               )}
-            </div>
+            Time Entry
             <button className="add-row-btn" onClick={addRow}> Add Row Below </button>
         </h3>
         <table className="time-entry-table">
