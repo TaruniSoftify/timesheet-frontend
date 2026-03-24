@@ -91,14 +91,10 @@ function ReportTime() {
     const token = localStorage.getItem("access_token");
 
     const apiUrl = process.env.REACT_APP_API_URL || "http://127.0.0.1:8000/api/";
-    fetch(`${apiUrl}timeentries/`, {
-      headers: {
-        "Authorization": `Bearer ${token}`,
-        "Content-Type": "application/json"
-      }
-    })
-      .then(res => res.json())
-      .then(data => {
+    
+    api.get("timeentries/")
+      .then(res => {
+        const data = res.data;
         if (!Array.isArray(data)) return;
 
         // Convert the 7 weekDates string array into comparable YYYY-MM-DD strings format
@@ -239,7 +235,7 @@ function ReportTime() {
     // If it has real DB IDs, issue DELETE requests immediately to the backend
     if (rowToDelete.dbIds && rowToDelete.dbIds.length > 0) {
         rowToDelete.dbIds.forEach(id => {
-            api.delete(`/${id}/`) // Assuming the base API for time entries is mapped correctly in our new api.js interceptor or we pass absolute
+            api.delete(`timeentries/${id}/`)
               .catch(err => console.error("Failed to delete entry", err));
         });
     }

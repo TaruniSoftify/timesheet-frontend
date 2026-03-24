@@ -24,6 +24,21 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
+    // --- MAGIC: Render Cold Start Resilience ---
+    // If the free Render server is asleep, it usually returns a Network Error (undefined response) or 502/504 Bad Gateway.
+    // We automatically pause and retry the exact same request every 5 seconds until the server wakes up!
+    if (!error.response || [502, 503, 504].includes(error.response.status)) {
+        // Limit retries to 12 times (60 seconds max), since Render usually boots in 50 seconds.
+        originalRequest._retryCount = (originalRequest._retryCount || 0) + 1;
+        
+        if (originalRequest._retryCount <= 12) {
+            console.warn(`Server is currently asleep. Waiting for it to wake up... (Retry ${originalRequest._retryCount}/12 in 5s)`);
+            return new Promise((resolve) => {
+                setTimeout(() => resolve(api(originalRequest)), 5000);
+            });
+        }
+    }
+
     // If we got a 401 Unauthorized and we haven't already tried refreshing this specific request
     if (error.response && error.response.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true; // Mark that we are retrying so we don't end up in an infinite loop
