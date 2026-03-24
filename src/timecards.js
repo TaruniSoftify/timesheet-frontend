@@ -480,9 +480,7 @@ function TimeCards() {
               />
 
               <div className="popup-buttons">
-                <button onClick={createTimecard} disabled={isCreating}>
-                    {isCreating ? "Creating..." : "OK"}
-                </button>
+                <button onClick={createTimecard} disabled={isCreating}>OK</button>
                 <button onClick={() => setShowCalendarPopup(false)} disabled={isCreating}>Cancel</button>
               </div>
 
