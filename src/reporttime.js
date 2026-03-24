@@ -69,9 +69,17 @@ function ReportTime() {
 
 
 
-  const [rows, setRows] = useState([
-    { id: 1, country: "", project: "", client: "", independence: "", task: "", note: "", hours: Array(7).fill("") }
-  ]);
+  // Smart Local Cache: Instantly render table layout, but ONLY cache the final database-saved version to prevent draft-leaks!
+  const CACHE_KEY = `timecard_draft_${period}`;
+  const [rows, setRows] = useState(() => {
+    const saved = sessionStorage.getItem(CACHE_KEY);
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {}
+    }
+    return [{ id: 1, country: "", project: "", client: "", independence: "", task: "", note: "", hours: Array(7).fill("") }];
+  });
 
   // Load existing TimeEntries from
   useEffect(() => {
@@ -165,6 +173,10 @@ function ReportTime() {
         const restoredRows = Object.values(groupedRows);
         if (restoredRows.length > 0) {
             setRows(restoredRows);
+            sessionStorage.setItem(CACHE_KEY, JSON.stringify(restoredRows)); // explicitly cache official DB layout
+        } else {
+            sessionStorage.removeItem(CACHE_KEY); // wipe cache if DB is officially blank
+            setRows([{ id: 1, country: "", project: "", client: "", independence: "", task: "", note: "", hours: Array(7).fill("") }]);
         }
         
         setIsFetching(false);
@@ -334,6 +346,8 @@ const saveTimeEntries = (closeAfterSave = false) => {
       }
   })
   .then(() => {
+      sessionStorage.setItem(CACHE_KEY, JSON.stringify(rows)); // Cache newly saved rows explicitly!
+
       if (closeAfterSave) {
           window.location.href = "/timecards";
       } else {
@@ -395,8 +409,15 @@ const navigate = useNavigate();
         </div>
 
         {/* ✅ Time Entry Section */}
-        <h3 className="time-entry-heading">Time Entry
-            {/* <button className="add-row-btn" onClick={addRow}>+</button> */}
+        <h3 className="time-entry-heading">
+            <div style={{display: 'flex', alignItems: 'center', gap: '15px'}}>
+               <span>Time Entry</span>
+               {isFetching && (
+                   <span style={{ fontSize: '14px', color: '#666', fontWeight: 'normal' }}>
+                      <i className="fa-solid fa-circle-notch fa-spin"></i> Syncing...
+                   </span>
+               )}
+            </div>
             <button className="add-row-btn" onClick={addRow}> Add Row Below </button>
         </h3>
         <table className="time-entry-table">
@@ -416,14 +437,7 @@ const navigate = useNavigate();
             </tr>
           </thead>
           <tbody>
-            {isFetching ? (
-              <tr>
-                 <td colSpan="14" style={{ textAlign: "center", padding: "40px", color: "#666" }}>
-                    <i className="fa-solid fa-circle-notch fa-spin" style={{ marginRight: "10px" }}></i>
-                    Securely Loading Saved Timecard Data...
-                 </td>
-              </tr>
-            ) : rows.map((row, idx) => (
+            {rows.map((row, idx) => (
               <tr key={row.id}>
                 <td>{idx + 1}</td>
 
