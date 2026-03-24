@@ -29,10 +29,12 @@ api.interceptors.response.use(
     // We automatically pause and retry the exact same request every 5 seconds until the server wakes up!
     if (!error.response || [502, 503, 504].includes(error.response.status)) {
         // Limit retries to 12 times (60 seconds max), since Render usually boots in 50 seconds.
-        originalRequest._retryCount = (originalRequest._retryCount || 0) + 1;
+        // We MUST use headers to count because Axios natively strips custom root-level properties when cloning config!
+        const currentRetry = parseInt(originalRequest.headers['X-Retry-Count'] || '0', 10);
+        originalRequest.headers['X-Retry-Count'] = (currentRetry + 1).toString();
         
-        if (originalRequest._retryCount <= 12) {
-            console.warn(`Server is currently asleep. Waiting for it to wake up... (Retry ${originalRequest._retryCount}/12 in 5s)`);
+        if (currentRetry < 12) {
+            console.warn(`Server is currently asleep. Waiting for it to wake up... (Retry ${currentRetry + 1}/12 in 5s)`);
             return new Promise((resolve) => {
                 setTimeout(() => resolve(api(originalRequest)), 5000);
             });
