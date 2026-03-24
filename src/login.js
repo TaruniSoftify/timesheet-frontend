@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "./App.css"; // ✅ use App.css
+import api from "./api"; // ✅ Use our resilient auto-retry API instead of fragile fetch
 
 function Login() {
   const [username, setUsername] = useState("");
@@ -17,6 +18,8 @@ function Login() {
       setTimeout(() => setModalMessage(""), 4000);
   };
 
+  const hasWokenUp = useRef(false);
+
   useEffect(() => {
     if (location.state && location.state.logoutMessage) {
        showToast(location.state.logoutMessage, 'success');
@@ -24,38 +27,32 @@ function Login() {
     }
   }, [location]);
 
+  // Tell Render to start booting up the very millisecond the user clicks the Username box!
+  const wakeUpServer = () => {
+      if (!hasWokenUp.current) {
+          hasWokenUp.current = true;
+          api.get("").catch(() => {}); // Silent ping
+      }
+  };
+
   const handleLogin = () => {
     setIsLoading(true);
-    const apiUrl = process.env.REACT_APP_API_URL || "http://127.0.0.1:8000/api/";
-    fetch(`${apiUrl}token/`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password })
-    })
+    
+    // Instead of raw fetch, we boldly use our new 60-second Retry API so it perfectly survives a Sleep Boot cycle without crashing!
+    api.post("token/", { username, password })
       .then(res => {
-        if (!res.ok) throw new Error("Login failed");
-        return res.json();
-      })
-      .then(data => {
+        const data = res.data;
         localStorage.setItem("access_token", data.access);
         localStorage.setItem("refresh_token", data.refresh);
         localStorage.setItem("username", username);
 
         // Fetch User Profile to get Role constraint
-        const apiUrl = process.env.REACT_APP_API_URL || "http://127.0.0.1:8000/api/";
-        return fetch(`${apiUrl}current_user/`, {
-            method: "GET",
-            headers: {
-                "Authorization": `Bearer ${data.access}`,
-                "Content-Type": "application/json"
-            }
+        return api.get("current_user/", {
+            headers: { "Authorization": `Bearer ${data.access}` }
         });
       })
       .then(res => {
-          if (!res.ok) throw new Error("Failed to fetch user profile");
-          return res.json();
-      })
-      .then(userData => {
+          const userData = res.data;
           // Parse the Role and Department
           const role = userData.profile ? userData.profile.role : "Employee";
           const dept = userData.profile ? userData.profile.department : "";
@@ -102,6 +99,7 @@ function Login() {
               className="login-input"
               placeholder="Username"
               value={username}
+              onFocus={wakeUpServer}
               onChange={e => setUsername(e.target.value)}
               required
             />
