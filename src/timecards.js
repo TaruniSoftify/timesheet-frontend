@@ -312,7 +312,6 @@ function TimeCards() {
         
         setIsCreating(false);
         setShowCalendarPopup(false);
-        navigate(`/report/${encodeURIComponent(safePeriod)}`, { state: { status: savedCard.status } });
     })
     .catch(err => {
         setIsCreating(false);
