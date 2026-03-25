@@ -3,6 +3,7 @@ import axios from 'axios';
 // Create a custom axios instance pointing to the Django backend
 const api = axios.create({
   baseURL: process.env.REACT_APP_API_URL || 'http://127.0.0.1:8000/api/',
+  timeout: 15000, // Forcibly terminate hung idle connections after 15 seconds so we can retry
 });
 
 // 1. Add the token to every outgoing request automatically
