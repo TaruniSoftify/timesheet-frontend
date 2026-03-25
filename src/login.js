@@ -31,7 +31,10 @@ function Login() {
   const wakeUpServer = () => {
       if (!hasWokenUp.current) {
           hasWokenUp.current = true;
-          api.get("").catch(() => {}); // Silent ping
+          // Immediately fire a blind opaque request that entirely skips preflight OPTIONS requests
+          // This prevents the browser from locking the connection queue for 2 minutes and blocking the actual Login!
+          fetch(process.env.REACT_APP_API_URL || "http://127.0.0.1:8000/api/", { mode: 'no-cors' })
+            .catch(() => {}); 
       }
   };
 
