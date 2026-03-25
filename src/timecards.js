@@ -10,6 +10,7 @@ function TimeCards() {
   const [timecards, setTimecards] = useState([]);
   const [selectedDate, setSelectedDate] = useState("");
   const [modalMessage, setModalMessage] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
 
   const [showActionsMenu, setShowActionsMenu] = useState(false);
   const [showViewMenu, setShowViewMenu] = useState(false);
@@ -277,33 +278,38 @@ function TimeCards() {
       return `${y}-${m}-${day}`;
     };
 
-    // 1. Fully Optimistic Instant UI Update (0ms Latency)
-    const optimisticCard = {
-      id: Date.now(), // Temporary fake ID
-      period: period,
-      status: "Draft",
-      total_hours: 0,
-      submission_date: ""
-    };
+    setIsCreating(true);
 
-    const optimisticUpdated = [...timecards, optimisticCard].sort((a, b) => {
-      const aDate = new Date(a.period.split(" - ")[0]);
-      const bDate = new Date(b.period.split(" - ")[0]);
-      return bDate - aDate; // newest first
-    });
-
-    setTimecards(optimisticUpdated);
-    localStorage.setItem("timecards", JSON.stringify(optimisticUpdated));
-
-    // Close popup instantly 
-    setShowCalendarPopup(false);
-
-    // 2. Secretly save to backend during 60s Sleep delays
     api.post("timecards/", {
         period_start: formatLocal(start),
         period_end: formatLocal(end)
     })
+    .then(res => {
+        const data = res.data;
+        const safePeriod = data.period || period;
+
+        const savedCard = {
+          id: data.id, // REAL ID from Backend
+          period: safePeriod,
+          status: data.status || "Draft",
+          total_hours: data.total_hours || 0,
+          submission_date: data.submission_date || ""
+        };
+
+        const updated = [...timecards, savedCard].sort((a, b) => {
+          const aDate = new Date(a.period.split(" - ")[0]);
+          const bDate = new Date(b.period.split(" - ")[0]);
+          return bDate - aDate;
+        });
+
+        setTimecards(updated);
+        localStorage.setItem("timecards", JSON.stringify(updated));
+
+        setIsCreating(false);
+        setShowCalendarPopup(false);
+    })
     .catch(err => {
+        setIsCreating(false);
         if (err.isSilentLogout) return; 
         console.error("Error saving timecard:", err);
         setModalMessage("Failed to officially register timecard on server: " + (err.message || "Server Error"));
@@ -469,8 +475,10 @@ function TimeCards() {
               />
 
               <div className="popup-buttons">
-                <button onClick={createTimecard}>OK</button>
-                <button onClick={() => setShowCalendarPopup(false)}>Cancel</button>
+                <button onClick={createTimecard} disabled={isCreating}>
+                    {isCreating ? <i className="fa-solid fa-spinner fa-spin"></i> : "OK"}
+                </button>
+                <button onClick={() => setShowCalendarPopup(false)} disabled={isCreating}>Cancel</button>
               </div>
 
             </div>
