@@ -277,43 +277,36 @@ function TimeCards() {
       return `${y}-${m}-${day}`;
     };
 
-    // Close popup instantly for an Optimistic UI feel
+    // 1. Fully Optimistic Instant UI Update (0ms Latency)
+    const optimisticCard = {
+      id: Date.now(), // Temporary fake ID
+      period: period,
+      status: "Draft",
+      total_hours: 0,
+      submission_date: ""
+    };
+
+    const optimisticUpdated = [...timecards, optimisticCard].sort((a, b) => {
+      const aDate = new Date(a.period.split(" - ")[0]);
+      const bDate = new Date(b.period.split(" - ")[0]);
+      return bDate - aDate; // newest first
+    });
+
+    setTimecards(optimisticUpdated);
+    localStorage.setItem("timecards", JSON.stringify(optimisticUpdated));
+
+    // Close popup instantly 
     setShowCalendarPopup(false);
 
-    // Save to backend using our auto-refresh interceptor
+    // 2. Secretly save to backend during 60s Sleep delays
     api.post("timecards/", {
         period_start: formatLocal(start),
         period_end: formatLocal(end)
     })
-    .then(res => {
-        const data = res.data;
-        console.log("Saved to backend:", data);
-
-        // Fallback to the 'period' we just calculated since the backend API does not return a 'period' string
-        const safePeriod = data.period || period;
-
-        // Map the backend data to match the format needed in the frontend table
-        const savedCard = {
-          id: data.id || Date.now(),
-          period: safePeriod,
-          status: data.status || "Draft",
-          total_hours: data.total_hours || 0,
-          submission_date: data.submission_date || ""
-        };
-
-        const updated = [...timecards, savedCard].sort((a, b) => {
-          const aDate = new Date(a.period.split(" - ")[0]);
-          const bDate = new Date(b.period.split(" - ")[0]);
-          return bDate - aDate; // newest first
-        });
-
-        setTimecards(updated);
-        localStorage.setItem("timecards", JSON.stringify(updated));
-    })
     .catch(err => {
-        if (err.isSilentLogout) return; // Prevent alert from blocking the redirect!
+        if (err.isSilentLogout) return; 
         console.error("Error saving timecard:", err);
-        setModalMessage("Failed to create timecard: " + (err.message || "Server Error"));
+        setModalMessage("Failed to officially register timecard on server: " + (err.message || "Server Error"));
     });
   };
   const handleExportExcel = () => {
