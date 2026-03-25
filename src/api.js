@@ -29,11 +29,11 @@ api.interceptors.response.use(
     // If the free Render server is asleep, it usually returns a Network Error (undefined response) or 502/504 Bad Gateway.
     // We automatically pause and retry the exact same request every 5 seconds until the server wakes up!
     if (!error.response || [502, 503, 504].includes(error.response.status)) {
-        // Limit retries to 5 times (max 95 seconds), since Render usually boots in ~50 seconds.
+        // Limit retries to 12 times (max 240 seconds), since Render sometimes needs 2 minutes to boot.
         originalRequest._retryCount = (originalRequest._retryCount || 0) + 1;
         
-        if (originalRequest._retryCount <= 5) {
-            console.warn(`Server is currently asleep. Waiting for it to wake up... (Retry ${originalRequest._retryCount}/5 in 5s)`);
+        if (originalRequest._retryCount <= 12) {
+            console.warn(`Server is currently asleep. Waiting for it to wake up... (Retry ${originalRequest._retryCount}/12 in 5s)`);
             return new Promise((resolve) => {
                 setTimeout(() => resolve(api(originalRequest)), 5000);
             });
