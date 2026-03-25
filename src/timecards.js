@@ -10,7 +10,6 @@ function TimeCards() {
   const [timecards, setTimecards] = useState([]);
   const [selectedDate, setSelectedDate] = useState("");
   const [modalMessage, setModalMessage] = useState("");
-  const [isCreating, setIsCreating] = useState(false);
 
   const [showActionsMenu, setShowActionsMenu] = useState(false);
   const [showViewMenu, setShowViewMenu] = useState(false);
@@ -278,7 +277,8 @@ function TimeCards() {
       return `${y}-${m}-${day}`;
     };
 
-    setIsCreating(true);
+    // Close popup instantly for an Optimistic UI feel
+    setShowCalendarPopup(false);
 
     // Save to backend using our auto-refresh interceptor
     api.post("timecards/", {
@@ -309,12 +309,8 @@ function TimeCards() {
 
         setTimecards(updated);
         localStorage.setItem("timecards", JSON.stringify(updated));
-        
-        setIsCreating(false);
-        setShowCalendarPopup(false);
     })
     .catch(err => {
-        setIsCreating(false);
         if (err.isSilentLogout) return; // Prevent alert from blocking the redirect!
         console.error("Error saving timecard:", err);
         setModalMessage("Failed to create timecard: " + (err.message || "Server Error"));
@@ -480,8 +476,8 @@ function TimeCards() {
               />
 
               <div className="popup-buttons">
-                <button onClick={createTimecard} disabled={isCreating}>OK</button>
-                <button onClick={() => setShowCalendarPopup(false)} disabled={isCreating}>Cancel</button>
+                <button onClick={createTimecard}>OK</button>
+                <button onClick={() => setShowCalendarPopup(false)}>Cancel</button>
               </div>
 
             </div>
